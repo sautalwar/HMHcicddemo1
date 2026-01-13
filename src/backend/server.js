@@ -7,6 +7,12 @@ const rateLimit = require('express-rate-limit');
 const path = require('path');
 require('dotenv').config();
 
+console.log('========================================');
+console.log('Application starting...');
+console.log('Node version:', process.version);
+console.log('Current directory:', __dirname);
+console.log('========================================');
+
 const { createRedisClient } = require('./config/redis');
 const { connectDatabase } = require('./config/database');
 const logger = require('./utils/logger');
@@ -66,29 +72,42 @@ let redisClient;
 const isTestMode = process.env.NODE_ENV === 'test' || process.env.CI === 'true';
 
 async function initializeApp() {
+  console.log('Starting application initialization...');
+  console.log('Environment:', process.env.NODE_ENV);
+  console.log('DB_SERVER:', process.env.DB_SERVER);
+  console.log('REDIS_HOST:', process.env.REDIS_HOST);
+  console.log('DB_USE_AZURE_AD:', process.env.DB_USE_AZURE_AD);
+  
   try {
     // Connect to Redis
     try {
+      console.log('Attempting to connect to Redis...');
       redisClient = await createRedisClient();
       logger.info('Redis connected successfully');
     } catch (redisError) {
+      logger.error('Redis connection failed:', redisError.message);
+      console.error('Redis connection error details:', redisError);
       if (isTestMode) {
-        logger.warn('Redis connection failed in test mode, continuing without Redis:', redisError.message);
+        logger.warn('Redis connection failed in test mode, continuing without Redis');
         redisClient = null;
       } else {
-        throw redisError;
+        logger.warn('Redis connection failed in production, continuing without Redis for now');
+        redisClient = null;
       }
     }
 
     // Connect to Database
     try {
+      console.log('Attempting to connect to Database...');
       await connectDatabase();
       logger.info('Database connected successfully');
     } catch (dbError) {
+      logger.error('Database connection failed:', dbError.message);
+      console.error('Database connection error details:', dbError);
       if (isTestMode) {
-        logger.warn('Database connection failed in test mode, continuing without database:', dbError.message);
+        logger.warn('Database connection failed in test mode, continuing without database');
       } else {
-        throw dbError;
+        logger.warn('Database connection failed in production, continuing without database for now');
       }
     }
 
@@ -198,11 +217,20 @@ async function initializeApp() {
 
     // Start server
     app.listen(PORT, () => {
+      console.log(`Server started successfully on port ${PORT}`);
       logger.info(`Server running on port ${PORT} in ${process.env.NODE_ENV || 'development'} mode`);
+      console.log('Application initialization completed successfully');
     });
 
   } catch (error) {
+    console.error('FATAL ERROR during initialization:', error);
     logger.error('Failed to initialize application:', error);
+    logger.error('Error stack:', error.stack);
+    console.error('Environment variables:', {
+      NODE_ENV: process.env.NODE_ENV,
+      DB_SERVER: process.env.DB_SERVER,
+      REDIS_HOST: process.env.REDIS_HOST
+    });
     process.exit(1);
   }
 }

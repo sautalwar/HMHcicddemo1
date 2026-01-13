@@ -297,6 +297,8 @@ jobs:
             -n ${{ secrets.CONTAINER_APP_NAME }} \
             -g ${{ secrets.RESOURCE_GROUP }} \
             --image ${{ steps.image.outputs.tag }} \
+            --cpu 1.0 \
+            --memory 2Gi \
             --min-replicas 1 \
             --max-replicas 3 \
             --set-env-vars \
