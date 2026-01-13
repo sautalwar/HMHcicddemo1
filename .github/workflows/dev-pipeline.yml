@@ -293,6 +293,15 @@ jobs:
 
       - name: Deploy to Azure Container Apps
         run: |
+          # Configure registry credentials
+          az containerapp registry set \
+            -n ${{ secrets.CONTAINER_APP_NAME }} \
+            -g ${{ secrets.RESOURCE_GROUP }} \
+            --server ghcr.io \
+            --username ${{ github.actor }} \
+            --password ${{ secrets.GITHUB_TOKEN }}
+          
+          # Update container app
           az containerapp update \
             -n ${{ secrets.CONTAINER_APP_NAME }} \
             -g ${{ secrets.RESOURCE_GROUP }} \
