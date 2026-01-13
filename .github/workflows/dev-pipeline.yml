@@ -7,8 +7,13 @@ on:
     branches: [develop, main]
 
 env:
-  NODE_VERSION: '18.x'
+  NODE_VERSION: '20.x'
   AZURE_WEBAPP_NAME: github-demo-dev
+
+permissions:
+  contents: read
+  packages: write
+  security-events: write
 
 jobs:
   lint-and-format:
