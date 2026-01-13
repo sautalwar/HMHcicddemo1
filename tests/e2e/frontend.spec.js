@@ -60,7 +60,7 @@ test.describe('Frontend E2E Tests', () => {
     
     // HTML5 validation should prevent submission
     const firstNameValidity = await page.getByTestId('register-firstname').evaluate(
-      (el: HTMLInputElement) => el.validity.valid
+      (el) => el.validity.valid
     );
     expect(firstNameValidity).toBe(false);
   });
@@ -77,7 +77,7 @@ test.describe('Frontend E2E Tests', () => {
     
     // Email validation should trigger
     const emailValidity = await page.getByTestId('login-email').evaluate(
-      (el: HTMLInputElement) => el.validity.valid
+      (el) => el.validity.valid
     );
     expect(emailValidity).toBe(false);
   });
