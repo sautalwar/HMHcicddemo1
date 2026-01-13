@@ -1,0 +1,58 @@
+version: 2
+updates:
+  # Enable version updates for npm
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+    open-pull-requests-limit: 10
+    reviewers:
+      - "solution-engineering"
+    assignees:
+      - "devops-team"
+    commit-message:
+      prefix: "npm"
+      include: "scope"
+    labels:
+      - "dependencies"
+      - "automated"
+    
+    # Group updates for better management
+    groups:
+      playwright:
+        patterns:
+          - "@playwright/*"
+      azure:
+        patterns:
+          - "azure-*"
+          - "@azure/*"
+
+  # Enable version updates for GitHub Actions
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+    open-pull-requests-limit: 5
+    reviewers:
+      - "devops-team"
+    commit-message:
+      prefix: "ci"
+    labels:
+      - "github-actions"
+      - "automated"
+
+  # Enable version updates for Docker (if using Dockerfiles)
+  - package-ecosystem: "docker"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 3
+    reviewers:
+      - "devops-team"
+    labels:
+      - "docker"
+      - "automated"

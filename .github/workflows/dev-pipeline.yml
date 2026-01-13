@@ -1,0 +1,264 @@
+name: Development Pipeline
+
+on:
+  push:
+    branches: [develop, main]
+  pull_request:
+    branches: [develop, main]
+
+env:
+  NODE_VERSION: '18.x'
+  AZURE_WEBAPP_NAME: github-demo-dev
+
+jobs:
+  lint-and-format:
+    name: Code Quality Checks
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run ESLint
+        run: npm run lint
+        continue-on-error: true
+
+      - name: Check formatting
+        run: npm run format -- --check
+        continue-on-error: true
+
+  unit-tests:
+    name: Unit Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run unit tests
+        run: npm run test:unit
+        continue-on-error: true
+
+  integration-tests:
+    name: Integration Tests
+    runs-on: ubuntu-latest
+    services:
+      redis:
+        image: redis:7-alpine
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run integration tests
+        run: npm run test:integration
+        env:
+          REDIS_HOST: localhost
+          REDIS_PORT: 6379
+          REDIS_TLS: false
+          DB_SERVER: ${{ secrets.DEV_DB_SERVER }}
+          DB_DATABASE: ${{ secrets.DEV_DB_DATABASE }}
+          DB_USER: ${{ secrets.DEV_DB_USER }}
+          DB_PASSWORD: ${{ secrets.DEV_DB_PASSWORD }}
+
+  e2e-tests:
+    name: End-to-End Tests
+    runs-on: ubuntu-latest
+    services:
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps
+
+      - name: Run E2E tests
+        run: npm run test:e2e
+        env:
+          BASE_URL: http://localhost:3000
+          DB_SERVER: ${{ secrets.DEV_DB_SERVER }}
+          DB_DATABASE: ${{ secrets.DEV_DB_DATABASE }}
+          DB_USER: ${{ secrets.DEV_DB_USER }}
+          DB_PASSWORD: ${{ secrets.DEV_DB_PASSWORD }}
+          REDIS_HOST: localhost
+          REDIS_PORT: 6379
+          REDIS_TLS: false
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 30
+
+      - name: Upload test screenshots
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-screenshots
+          path: test-results/
+          retention-days: 7
+
+  workflow-tests:
+    name: User Workflow Tests
+    runs-on: ubuntu-latest
+    services:
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps
+
+      - name: Run workflow tests
+        run: npm run test:workflows
+        env:
+          BASE_URL: http://localhost:3000
+          DB_SERVER: ${{ secrets.DEV_DB_SERVER }}
+          DB_DATABASE: ${{ secrets.DEV_DB_DATABASE }}
+          DB_USER: ${{ secrets.DEV_DB_USER }}
+          DB_PASSWORD: ${{ secrets.DEV_DB_PASSWORD }}
+          REDIS_HOST: localhost
+          REDIS_PORT: 6379
+          REDIS_TLS: false
+
+      - name: Upload workflow test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: workflow-test-results
+          path: test-results/
+          retention-days: 30
+
+  security-scan:
+    name: Security Scanning
+    runs-on: ubuntu-latest
+    permissions:
+      security-events: write
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run npm audit
+        run: npm audit --audit-level=moderate
+        continue-on-error: true
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: javascript
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
+
+  deploy-dev:
+    name: Deploy to Development
+    runs-on: ubuntu-latest
+    needs: [lint-and-format, unit-tests, integration-tests, e2e-tests, workflow-tests]
+    if: github.ref == 'refs/heads/develop' && github.event_name == 'push'
+    environment:
+      name: development
+      url: https://${{ env.AZURE_WEBAPP_NAME }}.azurewebsites.net
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Install dependencies
+        run: npm ci --production
+
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS_DEV }}
+
+      - name: Deploy to Azure Web App
+        uses: azure/webapps-deploy@v3
+        with:
+          app-name: ${{ env.AZURE_WEBAPP_NAME }}
+          package: .
+
+      - name: Run database migrations
+        run: |
+          node src/database/migrate.js
+        env:
+          DB_SERVER: ${{ secrets.DEV_DB_SERVER }}
+          DB_DATABASE: ${{ secrets.DEV_DB_DATABASE }}
+          DB_USER: ${{ secrets.DEV_DB_USER }}
+          DB_PASSWORD: ${{ secrets.DEV_DB_PASSWORD }}
+
+      - name: Smoke test
+        run: |
+          sleep 30
+          curl -f https://${{ env.AZURE_WEBAPP_NAME }}.azurewebsites.net/health || exit 1
+
+  notify:
+    name: Notify Results
+    runs-on: ubuntu-latest
+    needs: [deploy-dev]
+    if: always()
+    steps:
+      - name: Deployment notification
+        run: |
+          echo "Deployment to Development completed"
+          echo "Status: ${{ needs.deploy-dev.result }}"

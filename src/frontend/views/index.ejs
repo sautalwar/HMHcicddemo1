@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GitHub CI/CD Demo - Home</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <%- include('partials/header', { user }) %>
+
+  <main class="container my-5">
+    <div class="jumbotron bg-light p-5 rounded-3">
+      <h1 class="display-4">Welcome to GitHub CI/CD Demo</h1>
+      <p class="lead">
+        This is a demonstration of modern CI/CD practices using GitHub Actions, 
+        Azure services, and comprehensive testing with Playwright.
+      </p>
+      <hr class="my-4">
+      <p>
+        <strong>Environment:</strong> <span class="badge bg-<%= env === 'production' ? 'success' : env === 'test' ? 'warning' : 'info' %>"><%= env %></span>
+      </p>
+      <% if (!user) { %>
+        <p class="lead">
+          <a class="btn btn-primary btn-lg" href="/register" role="button">Get Started</a>
+          <a class="btn btn-outline-secondary btn-lg" href="/login" role="button">Login</a>
+        </p>
+      <% } else { %>
+        <p class="lead">
+          <a class="btn btn-primary btn-lg" href="/products" role="button">Browse Products</a>
+          <a class="btn btn-outline-secondary btn-lg" href="/cart" role="button">View Cart</a>
+        </p>
+      <% } %>
+    </div>
+
+    <div class="row mt-5">
+      <div class="col-md-4">
+        <div class="card h-100">
+          <div class="card-body">
+            <h5 class="card-title">🚀 GitHub Actions</h5>
+            <p class="card-text">
+              Automated CI/CD pipelines that run tests, build, and deploy your application 
+              across multiple environments with approval gates.
+            </p>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="card h-100">
+          <div class="card-body">
+            <h5 class="card-title">☁️ Azure Integration</h5>
+            <p class="card-text">
+              Seamless deployment to Azure App Service with SQL Server and Redis Cache 
+              for a production-ready architecture.
+            </p>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="card h-100">
+          <div class="card-body">
+            <h5 class="card-title">🧪 Playwright Testing</h5>
+            <p class="card-text">
+              Comprehensive end-to-end testing covering user workflows and frontend 
+              interactions to ensure quality before deployment.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row mt-4">
+      <div class="col-12">
+        <div class="card">
+          <div class="card-header">
+            <h5>Key Features Demonstrated</h5>
+          </div>
+          <div class="card-body">
+            <ul class="list-group list-group-flush">
+              <li class="list-group-item">✅ Multi-stage deployment pipeline (Dev → Test → Production)</li>
+              <li class="list-group-item">✅ Automated testing at each stage</li>
+              <li class="list-group-item">✅ Manual approval gates for production deployments</li>
+              <li class="list-group-item">✅ Branch protection rules and required status checks</li>
+              <li class="list-group-item">✅ Secrets management for secure credential storage</li>
+              <li class="list-group-item">✅ Deployment history and audit trail</li>
+              <li class="list-group-item">✅ Automated dependency updates with Dependabot</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <%- include('partials/footer') %>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="/js/main.js"></script>
+</body>
+</html>

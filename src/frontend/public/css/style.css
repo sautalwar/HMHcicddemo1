@@ -1,0 +1,80 @@
+:root {
+  --primary-color: #0969da;
+  --secondary-color: #6e7781;
+  --success-color: #1a7f37;
+  --danger-color: #cf222e;
+}
+
+body {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+main {
+  flex: 1;
+}
+
+.navbar-brand {
+  font-weight: bold;
+}
+
+.card {
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.jumbotron {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+}
+
+.jumbotron .badge {
+  font-size: 1rem;
+  padding: 0.5rem 1rem;
+}
+
+footer {
+  margin-top: auto;
+}
+
+#cart-count {
+  font-size: 0.75rem;
+  padding: 0.25rem 0.5rem;
+}
+
+.product-image {
+  height: 200px;
+  object-fit: cover;
+}
+
+/* Loading spinner */
+.spinner {
+  border: 3px solid #f3f3f3;
+  border-top: 3px solid var(--primary-color);
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  animation: spin 1s linear infinite;
+  margin: 20px auto;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .jumbotron {
+    padding: 2rem 1rem !important;
+  }
+  
+  .jumbotron h1 {
+    font-size: 2rem;
+  }
+}

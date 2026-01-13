@@ -1,0 +1,27 @@
+# CODEOWNERS - Automatic code review assignments
+
+# Global owners
+* @solution-engineering @devops-team
+
+# Frontend changes
+/src/frontend/ @frontend-team @solution-engineering
+
+# Backend API changes
+/src/backend/routes/ @backend-team @solution-engineering
+/src/backend/config/ @backend-team @devops-team
+
+# Database changes require DBA review
+/src/database/ @dba-team @backend-team
+
+# Infrastructure and deployment
+/.github/workflows/ @devops-team @solution-engineering
+/infrastructure/ @devops-team
+
+# Security-sensitive files
+/src/backend/routes/auth.js @security-team @backend-team
+*.key @security-team
+*.pem @security-team
+
+# Documentation
+/specs/ @solution-engineering @product-team
+*.md @solution-engineering
