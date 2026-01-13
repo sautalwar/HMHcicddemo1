@@ -297,6 +297,8 @@ jobs:
             -n ${{ secrets.CONTAINER_APP_NAME }} \
             -g ${{ secrets.RESOURCE_GROUP }} \
             --image ${{ steps.image.outputs.tag }} \
+            --min-replicas 1 \
+            --max-replicas 3 \
             --set-env-vars \
               NODE_ENV=production \
               DB_SERVER=${{ secrets.DEV_DB_SERVER }} \
@@ -312,7 +314,7 @@ jobs:
 
       - name: Smoke test
         run: |
-          sleep 60
+          sleep 120
           curl -f https://${{ secrets.CONTAINER_APP_FQDN }}/health || exit 1
 
   notify:
