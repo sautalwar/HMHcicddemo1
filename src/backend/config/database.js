@@ -66,6 +66,12 @@ let pool;
 
 async function connectDatabase() {
   try {
+    // Skip database if no server configured
+    if (!process.env.DB_SERVER) {
+      logger.info('No database server configured, skipping database connection');
+      return null;
+    }
+
     if (pool) {
       return pool;
     }

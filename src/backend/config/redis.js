@@ -2,6 +2,12 @@ const redis = require('redis');
 const logger = require('../utils/logger');
 
 async function createRedisClient() {
+  // Skip Redis if no host configured
+  if (!process.env.REDIS_HOST) {
+    logger.info('No Redis host configured, skipping Redis connection');
+    return null;
+  }
+
   const client = redis.createClient({
     socket: {
       host: process.env.REDIS_HOST,
