@@ -279,7 +279,8 @@ jobs:
       - name: Get Container Image Tag
         id: image
         run: |
-          echo "tag=ghcr.io/${{ github.repository }}:main-${{ github.sha }}" >> $GITHUB_OUTPUT
+          # Use the latest tag for simplicity
+          echo "tag=ghcr.io/${{ github.repository }}:latest" >> $GITHUB_OUTPUT
 
       - name: Set Container App Secrets
         run: |
