@@ -1,5 +1,5 @@
-const { getPool, sql } = require('../config/database');
-const logger = require('../utils/logger');
+const { getPool, sql } = require('../backend/config/database');
+const logger = require('../backend/utils/logger');
 
 async function migrate() {
   try {
