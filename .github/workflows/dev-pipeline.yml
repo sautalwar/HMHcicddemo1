@@ -281,26 +281,6 @@ jobs:
         run: |
           echo "tag=ghcr.io/${{ github.repository }}:main-${{ github.sha }}" >> $GITHUB_OUTPUT
 
-      - name: Deploy to Azure Container Apps
-        uses: azure/container-apps-deploy-action@v1
-        with:
-          resourceGroup: ${{ secrets.RESOURCE_GROUP }}
-          containerAppName: ${{ secrets.CONTAINER_APP_NAME }}
-          containerAppEnvironment: ${{ secrets.CONTAINER_APP_ENVIRONMENT }}
-          imageToDeploy: ${{ steps.image.outputs.tag }}
-          environmentVariables: |
-            NODE_ENV=production
-            DB_SERVER=${{ secrets.DEV_DB_SERVER }}
-            DB_DATABASE=${{ secrets.DEV_DB_DATABASE }}
-            DB_USE_AZURE_AD=true
-            DB_ENCRYPT=true
-            REDIS_HOST=${{ secrets.DEV_REDIS_HOST }}
-            REDIS_PORT=6380
-            REDIS_PASSWORD=secretref:redis-password
-            REDIS_TLS=true
-            SESSION_SECRET=secretref:session-secret
-            JWT_SECRET=secretref:jwt-secret
-
       - name: Set Container App Secrets
         run: |
           az containerapp secret set \
@@ -310,6 +290,25 @@ jobs:
               redis-password="${{ secrets.DEV_REDIS_PASSWORD }}" \
               session-secret="$(openssl rand -hex 32)" \
               jwt-secret="$(openssl rand -hex 32)"
+
+      - name: Deploy to Azure Container Apps
+        run: |
+          az containerapp update \
+            -n ${{ secrets.CONTAINER_APP_NAME }} \
+            -g ${{ secrets.RESOURCE_GROUP }} \
+            --image ${{ steps.image.outputs.tag }} \
+            --set-env-vars \
+              NODE_ENV=production \
+              DB_SERVER=${{ secrets.DEV_DB_SERVER }} \
+              DB_DATABASE=${{ secrets.DEV_DB_DATABASE }} \
+              DB_USE_AZURE_AD=true \
+              DB_ENCRYPT=true \
+              REDIS_HOST=${{ secrets.DEV_REDIS_HOST }} \
+              REDIS_PORT=6380 \
+              REDIS_PASSWORD=secretref:redis-password \
+              REDIS_TLS=true \
+              SESSION_SECRET=secretref:session-secret \
+              JWT_SECRET=secretref:jwt-secret
 
       - name: Smoke test
         run: |
